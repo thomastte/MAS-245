@@ -41,6 +41,8 @@ namespace
   constexpr unsigned long sendIntervalMs = 1000;
 
   volatile uint32_t lastSentId = 0; // <-- new: store last sent ID
+  volatile uint32_t lastRecvId = 0; // <-- NEW: store last received ID
+  volatile bool     lastRecvExtended = false; // NEW: whether last received ID was extended
 }
 
 struct Message 
@@ -154,13 +156,14 @@ void drawCounters()
 
   display.setCursor(8, 36);
   display.print(F("Sent:"));
-  display.fillRect(48, 36, 40, 8, SSD1306_BLACK);
-  display.setCursor(48, 36);
+  display.fillRect(40, 36, 40, 8, SSD1306_BLACK);
+  display.setCursor(40, 36);
   display.print(sentCount);   // dynamic
   display.setCursor(72, 36);
   display.print(F("ID:"));  
   display.setCursor(90, 36);
   
+  display.fillRect(90, 36, 38, 8, SSD1306_BLACK);
   // print lastSentId as hex with 0x prefix
   char idBuf[12];
   snprintf(idBuf, sizeof(idBuf), "0x%03lX", (unsigned long)lastSentId);
@@ -170,13 +173,21 @@ void drawCounters()
   // "Recv:" label
   display.setCursor(8, 48);
   display.print(F("Recv:"));
-  display.fillRect(48, 48, 40, 8, SSD1306_BLACK);
-  display.setCursor(48, 48);
+  display.fillRect(40, 48, 40, 8, SSD1306_BLACK);
+  display.setCursor(40, 48);
   display.print(recvCount);   // dynamic
   display.setCursor(72, 48);
   display.print(F("ID:"));
+  display.fillRect(90, 48, 38, 8, SSD1306_BLACK);
+
+  // print lastRecvId; use wider format for extended IDs
+  if (lastRecvExtended) {
+    snprintf(idBuf, sizeof(idBuf), "0x%08lX", (unsigned long)lastRecvId);
+  } else {
+    snprintf(idBuf, sizeof(idBuf), "0x%03lX", (unsigned long)lastRecvId);
+  }
   display.setCursor(90, 48);
-  display.print(F("0x001"));
+  display.print(idBuf);
 
 }
 
@@ -187,6 +198,9 @@ void readCanMessage()
   while (can0.read(msg)) {
     // A message was received
     recvCount++;
+// record ID and whether it's extended
+    lastRecvId = msg.id;
+  //  lastRecvExtended = (msg.flags.ext != 0);
 
 // print basic info to serial for debugging
     Serial.print(F("CAN RX ID: 0x"));
@@ -211,8 +225,13 @@ void sendCan()
   msg.buf[0] = 0x26;
   msg.buf[1] = 0x42;
   msg.buf[2] = 0x00;
-  can0.write(msg);
-  sentCount++;
+  bool ok = can0.write(msg);
+  if (ok) {
+    sentCount++;
+    lastSentId = msg.id; // <-- record ID of sent message
+  } else {
+    Serial.println(F("CAN TX failed"));
+  }
 }
 
 void sendCan(const Message& message) 
@@ -231,8 +250,11 @@ void sendCan(const Message& message)
     memcpy(&msg.buf[1], &message.temperature, sizeof(float));
 
     // Send the CAN message
-    if (can0.write(msg) < 0)
-    {
-      Serial.println("CAN send failed.");
+    bool ok = can0.write(msg);
+    if (!ok) {
+      Serial.println(F("CAN send failed."));
+    } else {
+      sentCount++;
+      lastSentId = msg.id; // <-- record ID of sent message
     }
 }
