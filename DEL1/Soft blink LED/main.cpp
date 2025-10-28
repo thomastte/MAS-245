@@ -1,3 +1,9 @@
+/*
+ * GccApplication3.cpp
+ *
+ * Created: 21/10/2025 10:55:57
+ * Author : stein
+ */ 
 #define F_CPU 8000000UL // Setter CPU klokke frekvens til 8 Mhz
 #include <avr/io.h> // I/O register
 #include <util/delay.h> // Tilater bruken av "_delay_ms"
@@ -21,7 +27,7 @@ void PWM_init(void) {
 }
 
 void set_PWM_duty(uint8_t duty_cycle) {
-	OCR1A = duty_cycle*duty_cycle/255; //Setter duty cycle*duty cycle for Ã¥ fÃ¥ uliner dimming (uten hopp i bunn)
+	OCR1A = duty_cycle*duty_cycle/255; //Setter duty cycle*duty cycle for å få uliner dimming (uten hopp i bunn)
 }
 
 int main(void) {
