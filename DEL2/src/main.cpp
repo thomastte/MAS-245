@@ -127,7 +127,7 @@ void drawHeader()
   display.print(F("MAS-245"));
 
   display.setCursor(72, 6);
-  display.print(F("Gruppe 4"));
+  display.print(F("Gruppe 3"));
 
   //display.drawLine(0, 16, carrier::oled::screenWidth, 16, SSD1306_WHITE);
 }
