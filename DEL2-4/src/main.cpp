@@ -7,6 +7,8 @@
 #define RADIUS 3
 #define PADDLE_WIDTH 4
 #define PADDLE_HEIGHT 16
+#define GROUPNUM 3
+
 
 namespace carrier
 {
