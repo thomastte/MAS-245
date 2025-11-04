@@ -53,7 +53,8 @@ void startPos();
 void ownPaddle();
 void oppPaddle();
 
-void setup() {
+void setup() 
+{
   Serial.begin(9600);
   if( !display.begin(SSD1306_SWITCHCAPVCC) )
   {
@@ -72,7 +73,8 @@ void setup() {
 
 }
 
-void loop() {
+void loop() 
+{
     
 }
 
